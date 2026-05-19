@@ -5,7 +5,7 @@ Business logic for task management, AI-powered features, and analytics.
 """
 
 import time
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime, date, timedelta
 from loguru import logger
 from aiosqlite import Connection
@@ -38,48 +38,12 @@ class TaskService:
         Create a new task with AI-powered suggestions.
         """
         try:
-            # Extract tags and dependencies for separate tables
-            tags = task.tags
-            depends_on = task.depends_on
+            task_id = await self._insert_main_task(task)
+            await self._insert_task_tags(task_id, task.tags)
+            await self._insert_task_dependencies(task_id, task.depends_on)
             
-            # Create main task
-            cursor = await self.db.execute("""
-                INSERT INTO tasks (
-                    title, description, priority, status, category_id, 
-                    due_date, estimated_hours, actual_hours, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                task.title,
-                task.description,
-                task.priority.value,
-                task.status.value,
-                task.category_id,
-                task.due_date,
-                task.estimated_hours,
-                task.actual_hours,
-                1  # TODO: Get from authentication context
-            ))
-            
-            task_id = cursor.lastrowid
-            
-            # Add task tags
-            if tags:
-                await self.db.executemany(
-                    "INSERT INTO task_tags (task_id, tag) VALUES (?, ?)",
-                    [(task_id, tag) for tag in tags]
-                )
-            
-            # Add task dependencies
-            if depends_on:
-                await self.db.executemany(
-                    "INSERT INTO task_dependencies (task_id, depends_on_id) VALUES (?, ?)",
-                    [(task_id, dep_id) for dep_id in depends_on]
-                )
-            
-            # Get the created task
             created_task = await self.get_task(task_id)
             
-            # AI-powered suggestions if enabled
             if task.description and len(task.description) > 50:
                 await self._suggest_priority_improvements(created_task)
             
@@ -121,47 +85,24 @@ class TaskService:
         status: Optional[str] = None,
         category_id: Optional[int] = None,
         search: Optional[str] = None
-    ) -> tuple[List[TaskRead], int]:
+    ) -> Tuple[List[TaskRead], int]:
         """
         List tasks with filtering and pagination.
         """
         try:
-            # Build query with filters
-            query = """
-                SELECT t.*, c.name as category_name
-                FROM tasks t
-                LEFT JOIN categories c ON t.category_id = c.id
-                WHERE 1=1
-            """
-            params = []
+            query, params = self._build_list_query(
+                priority=priority,
+                status=status,
+                category_id=category_id,
+                search=search
+            )
             
-            if priority:
-                query += " AND t.priority = ?"
-                params.append(priority)
+            total = await self._get_count(query, params)
             
-            if status:
-                query += " AND t.status = ?"
-                params.append(status)
-            
-            if category_id:
-                query += " AND t.category_id = ?"
-                params.append(category_id)
-            
-            if search:
-                query += " AND (t.title LIKE ? OR t.description LIKE ?)"
-                search_term = f"%{search}%"
-                params.extend([search_term, search_term])
-            
-            # Count total for pagination
-            count_query = query.replace("SELECT t.*, c.name as category_name", "SELECT COUNT(*)")
-            cursor = await self.db.execute(count_query, params)
-            total = (await cursor.fetchone())[0]
-            
-            # Get paginated results
-            query += " ORDER BY t.created_at DESC LIMIT ? OFFSET ?"
+            paginated_query = query + " ORDER BY t.created_at DESC LIMIT ? OFFSET ?"
             params.extend([limit, skip])
             
-            cursor = await self.db.execute(query, params)
+            cursor = await self.db.execute(paginated_query, params)
             rows = await cursor.fetchall()
             
             tasks = [self._row_to_task_read(row) for row in rows]
@@ -177,74 +118,18 @@ class TaskService:
         Update an existing task.
         """
         try:
-            # Check if task exists
             existing_task = await self.get_task(task_id)
             if not existing_task:
                 return None
             
-            # Build update query
-            update_fields = []
-            params = []
-            
-            if task_update.title is not None:
-                update_fields.append("title = ?")
-                params.append(task_update.title)
-            
-            if task_update.description is not None:
-                update_fields.append("description = ?")
-                params.append(task_update.description)
-            
-            if task_update.priority is not None:
-                update_fields.append("priority = ?")
-                params.append(task_update.priority.value)
-            
-            if task_update.status is not None:
-                update_fields.append("status = ?")
-                params.append(task_update.status.value)
-                
-                # Set completed timestamp when status becomes completed
-                if task_update.status == Status.COMPLETED:
-                    update_fields.append("completed_at = ?")
-                    params.append(datetime.now())
-            
-            if task_update.category_id is not None:
-                update_fields.append("category_id = ?")
-                params.append(task_update.category_id)
-            
-            if task_update.due_date is not None:
-                update_fields.append("due_date = ?")
-                params.append(task_update.due_date)
-            
-            if task_update.estimated_hours is not None:
-                update_fields.append("estimated_hours = ?")
-                params.append(task_update.estimated_hours)
-            
-            if task_update.actual_hours is not None:
-                update_fields.append("actual_hours = ?")
-                params.append(task_update.actual_hours)
-            
-            if not update_fields:
+            update_data = self._prepare_update_data(task_update)
+            if not update_data:
                 return existing_task
             
-            # Update task
-            query = f"""
-                UPDATE tasks 
-                SET {', '.join(update_fields)}
-                WHERE id = ?
-            """
-            params.append(task_id)
+            await self._execute_update_query(task_id, update_data, task_update)
+            await self._update_task_tags(task_id, task_update.tags)
+            await self._update_task_dependencies(task_id, task_update.depends_on)
             
-            await self.db.execute(query, params)
-            
-            # Update tags if provided
-            if task_update.tags is not None:
-                await self._update_task_tags(task_id, task_update.tags)
-            
-            # Update dependencies if provided
-            if task_update.depends_on is not None:
-                await self._update_task_dependencies(task_id, task_update.depends_on)
-            
-            # Get updated task
             updated_task = await self.get_task(task_id)
             
             logger.info(f"Task updated successfully: {task_id}")
@@ -278,79 +163,15 @@ class TaskService:
         Get comprehensive task analytics.
         """
         try:
-            # Basic statistics
-            total_tasks = await self._get_count("SELECT COUNT(*) FROM tasks")
-            completed_tasks = await self._get_count(
-                "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.COMPLETED.value,)
-            )
-            pending_tasks = await self._get_count(
-                "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.PENDING.value,)
-            )
-            in_progress_tasks = await self._get_count(
-                "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.IN_PROGRESS.value,)
-            )
-            overdue_tasks = await self._get_count(
-                "SELECT COUNT(*) FROM tasks WHERE due_date < ? AND status != ?",
-                (date.today(), Status.COMPLETED.value)
-            )
-            
-            # Calculate metrics
-            completed_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
-            
-            # Tasks by priority
-            tasks_by_priority = await self._get_count_by_field("priority")
-            
-            # Tasks by status
-            tasks_by_status = await self._get_count_by_field("status")
-            
-            # Tasks by category
-            tasks_by_category = await self._get_count_by_field("category_id", "category_name")
-            
-            # Productivity trend (last 7 days)
-            productivity_trend = await self._get_productivity_trend()
-            
-            # Top priority tasks
-            top_priority_tasks = await self.list_tasks(
-                limit=5, priority=Priority.URGENT.value
-            )
-            
-            # Recent completed tasks
-            recent_completed_tasks = await self.list_tasks(
-                limit=5, status=Status.COMPLETED.value
-            )
-            
-            # Upcoming due tasks
-            upcoming_due_tasks = await self.list_tasks(
-                limit=5, search="due_date"
-            )
-            
-            # Calculate productivity score
-            productivity_score = await self._calculate_productivity_score()
-            
-            # Get AI recommendations
-            recommendations = await self._get_ai_recommendations()
-            
-            analytics = TaskAnalytics(
-                total_tasks=total_tasks,
-                completed_tasks=completed_tasks,
-                pending_tasks=pending_tasks,
-                in_progress_tasks=in_progress_tasks,
-                overdue_tasks=overdue_tasks,
-                completed_percentage=completed_percentage,
-                average_completion_time=await self._get_average_completion_time(),
-                tasks_by_priority=tasks_by_priority,
-                tasks_by_status=tasks_by_status,
-                tasks_by_category=tasks_by_category,
-                productivity_trend=productivity_trend,
-            )
+            analytics = await self._calculate_task_analytics()
             
             return TaskAnalyticsResponse(
                 overview=analytics,
-                top_priority_tasks=top_priority_tasks[0],
-                recent_completed_tasks=recent_completed_tasks[0],
-                upcoming_due_tasks=upcoming_due_tasks[0],
-                productivity_score=productivity_score,
-                recommendations=recommendations,
+                top_priority_tasks=(await self.list_tasks(limit=5, priority=Priority.URGENT.value))[0],
+                recent_completed_tasks=(await self.list_tasks(limit=5, status=Status.COMPLETED.value))[0],
+                upcoming_due_tasks=(await self.list_tasks(limit=5, search="due_date"))[0],
+                productivity_score=await self._calculate_productivity_score(),
+                recommendations=await self._get_ai_recommendations(),
             )
             
         except Exception as e:
@@ -362,29 +183,18 @@ class TaskService:
         AI-powered task prioritization.
         """
         try:
-            # Get tasks that need prioritization
-            cursor = await self.db.execute("""
-                SELECT id, title, description, due_date, estimated_hours
-                FROM tasks
-                WHERE priority = ? AND status = ?
-                ORDER BY due_date ASC, created_at ASC
-            """, (Priority.MEDIUM.value, Status.PENDING.value))
-            
-            tasks = await cursor.fetchall()
+            tasks_to_prioritize = await self._get_tasks_for_prioritization()
             prioritized_count = 0
             
-            for task in tasks:
-                task_id, title, description, due_date, estimated_hours = task
-                
-                # Simple AI logic for prioritization
+            for task in tasks_to_prioritize:
                 new_priority = self._calculate_priority(
-                    title, description, due_date, estimated_hours
+                    task[1], task[2], task[3], task[4]
                 )
                 
                 if new_priority != Priority.MEDIUM:
                     await self.db.execute(
                         "UPDATE tasks SET priority = ? WHERE id = ?",
-                        (new_priority.value, task_id)
+                        (new_priority.value, task[0])
                     )
                     prioritized_count += 1
             
@@ -401,33 +211,16 @@ class TaskService:
         AI-powered task suggestions.
         """
         try:
-            # Get recent completed tasks for pattern analysis
-            cursor = await self.db.execute("""
-                SELECT title, description, category_id, estimated_hours
-                FROM tasks
-                WHERE status = ? AND created_at > ?
-                ORDER BY created_at DESC
-                LIMIT 10
-            """, (Status.COMPLETED.value, datetime.now() - timedelta(days=30)))
-            
-            completed_tasks = await cursor.fetchall()
-            
-            # Analyze patterns and generate suggestions
+            completed_tasks = await self._get_recent_completed_tasks()
             suggestions = []
             
-            # Suggest recurring tasks based on patterns
             if completed_tasks:
                 suggestions.extend(await self._suggest_recurring_tasks(completed_tasks))
             
-            # Suggest tasks based on overdue items
-            overdue_suggestions = await self._suggest_overdue_tasks()
-            suggestions.extend(overdue_suggestions)
+            suggestions.extend(await self._suggest_overdue_tasks())
+            suggestions.extend(await self._suggest_capacity_based_tasks())
             
-            # Suggest tasks based on capacity
-            capacity_suggestions = await self._suggest_capacity_based_tasks()
-            suggestions.extend(capacity_suggestions)
-            
-            return suggestions[:5]  # Return top 5 suggestions
+            return suggestions[:5]
             
         except Exception as e:
             logger.error(f"Failed to generate task suggestions: {e}")
@@ -451,23 +244,133 @@ class TaskService:
             category_name=row['category_name'],
         )
     
-    async def _update_task_tags(self, task_id: int, tags: List[str]) -> None:
-        """Update task tags."""
-        await self.db.execute("DELETE FROM task_tags WHERE task_id = ?", (task_id,))
+    async def _insert_main_task(self, task: TaskCreate) -> int:
+        """Insert main task record and return task ID."""
+        cursor = await self.db.execute("""
+            INSERT INTO tasks (
+                title, description, priority, status, category_id, 
+                due_date, estimated_hours, actual_hours, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            task.title,
+            task.description,
+            task.priority.value,
+            task.status.value,
+            task.category_id,
+            task.due_date,
+            task.estimated_hours,
+            task.actual_hours,
+            self._get_current_user_id()
+        ))
+        
+        return cursor.lastrowid
+    
+    async def _insert_task_tags(self, task_id: int, tags: List[str]) -> None:
+        """Insert task tags into database."""
         if tags:
             await self.db.executemany(
                 "INSERT INTO task_tags (task_id, tag) VALUES (?, ?)",
                 [(task_id, tag) for tag in tags]
             )
     
-    async def _update_task_dependencies(self, task_id: int, dependencies: List[int]) -> None:
-        """Update task dependencies."""
-        await self.db.execute("DELETE FROM task_dependencies WHERE task_id = ?", (task_id,))
+    async def _insert_task_dependencies(self, task_id: int, dependencies: List[int]) -> None:
+        """Insert task dependencies into database."""
         if dependencies:
             await self.db.executemany(
                 "INSERT INTO task_dependencies (task_id, depends_on_id) VALUES (?, ?)",
                 [(task_id, dep_id) for dep_id in dependencies]
             )
+    
+    async def _update_task_tags(self, task_id: int, tags: Optional[List[str]]) -> None:
+        """Update task tags."""
+        await self.db.execute("DELETE FROM task_tags WHERE task_id = ?", (task_id,))
+        if tags:
+            await self._insert_task_tags(task_id, tags)
+    
+    async def _update_task_dependencies(self, task_id: int, dependencies: Optional[List[int]]) -> None:
+        """Update task dependencies."""
+        await self.db.execute("DELETE FROM task_dependencies WHERE task_id = ?", (task_id,))
+        if dependencies:
+            await self._insert_task_dependencies(task_id, dependencies)
+    
+    def _build_list_query(
+        self,
+        priority: Optional[str] = None,
+        status: Optional[str] = None,
+        category_id: Optional[int] = None,
+        search: Optional[str] = None
+    ) -> Tuple[str, List]:
+        """Build SQL query for list_tasks with filters."""
+        query = """
+            SELECT t.*, c.name as category_name
+            FROM tasks t
+            LEFT JOIN categories c ON t.category_id = c.id
+            WHERE 1=1
+        """
+        params = []
+        
+        if priority:
+            query += " AND t.priority = ?"
+            params.append(priority)
+        
+        if status:
+            query += " AND t.status = ?"
+            params.append(status)
+        
+        if category_id:
+            query += " AND t.category_id = ?"
+            params.append(category_id)
+        
+        if search:
+            query += " AND (t.title LIKE ? OR t.description LIKE ?)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term])
+        
+        return query, params
+    
+    def _prepare_update_data(self, task_update: TaskUpdate) -> Dict[str, Any]:
+        """Prepare update data from TaskUpdate."""
+        update_fields = []
+        params = []
+        
+        field_mappings = {
+            'title': ('title', task_update.title),
+            'description': ('description', task_update.description),
+            'priority': ('priority', task_update.priority),
+            'category_id': ('category_id', task_update.category_id),
+            'due_date': ('due_date', task_update.due_date),
+            'estimated_hours': ('estimated_hours', task_update.estimated_hours),
+            'actual_hours': ('actual_hours', task_update.actual_hours),
+        }
+        
+        for field, (db_field, value) in field_mappings.items():
+            if value is not None:
+                update_fields.append(f"{db_field} = ?")
+                if field == 'priority':
+                    params.append(value.value)
+                else:
+                    params.append(value)
+        
+        # Handle special status update with completed timestamp
+        if task_update.status is not None:
+            update_fields.append("status = ?")
+            params.append(task_update.status.value)
+            
+            if task_update.status == Status.COMPLETED:
+                update_fields.append("completed_at = ?")
+                params.append(datetime.now())
+        
+        return {'fields': update_fields, 'params': params}
+    
+    async def _execute_update_query(self, task_id: int, update_data: Dict[str, Any], task_update: TaskUpdate) -> None:
+        """Execute the update query."""
+        query = f"""
+            UPDATE tasks 
+            SET {', '.join(update_data['fields'])}
+            WHERE id = ?
+        """
+        params = update_data['params'] + [task_id]
+        await self.db.execute(query, params)
     
     async def _get_count(self, query: str, params: tuple = None) -> int:
         """Get count from database."""
@@ -487,6 +390,40 @@ class TaskService:
             return {row['name'] or 'Uncategorized': row['count'] for row in rows}
         else:
             return {row[field] or 'Uncategorized': row['count'] for row in rows}
+    
+    async def _calculate_task_analytics(self) -> TaskAnalytics:
+        """Calculate comprehensive task analytics."""
+        total_tasks = await self._get_count("SELECT COUNT(*) FROM tasks")
+        completed_tasks = await self._get_count(
+            "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.COMPLETED.value,)
+        )
+        pending_tasks = await self._get_count(
+            "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.PENDING.value,)
+        )
+        in_progress_tasks = await self._get_count(
+            "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.IN_PROGRESS.value,)
+        )
+        overdue_tasks = await self._get_count(
+            "SELECT COUNT(*) FROM tasks WHERE due_date < ? AND status != ?",
+            (date.today(), Status.COMPLETED.value)
+        )
+        
+        completed_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        average_completion_time = await self._get_average_completion_time()
+        
+        return TaskAnalytics(
+            total_tasks=total_tasks,
+            completed_tasks=completed_tasks,
+            pending_tasks=pending_tasks,
+            in_progress_tasks=in_progress_tasks,
+            overdue_tasks=overdue_tasks,
+            completed_percentage=completed_percentage,
+            average_completion_time=average_completion_time,
+            tasks_by_priority=await self._get_count_by_field("priority"),
+            tasks_by_status=await self._get_count_by_field("status"),
+            tasks_by_category=await self._get_count_by_field("category_id", "category_name"),
+            productivity_trend=await self._get_productivity_trend(),
+        )
     
     async def _get_productivity_trend(self) -> List[Dict[str, Any]]:
         """Get productivity trend for the last 7 days."""
@@ -514,7 +451,6 @@ class TaskService:
             "SELECT COUNT(*) FROM tasks WHERE status = ?", (Status.COMPLETED.value,)
         )
         
-        # Calculate weighted score
         completion_rate = completed_tasks / total_tasks
         on_time_rate = await self._get_on_time_completion_rate()
         
@@ -550,7 +486,6 @@ class TaskService:
         """Generate AI-based recommendations."""
         recommendations = []
         
-        # Check for overdue tasks
         overdue_count = await self._get_count(
             "SELECT COUNT(*) FROM tasks WHERE due_date < ? AND status != ?",
             (date.today(), Status.COMPLETED.value)
@@ -559,7 +494,6 @@ class TaskService:
         if overdue_count > 0:
             recommendations.append(f"You have {overdue_count} overdue tasks that need attention.")
         
-        # Check for tasks without due dates
         no_due_date_count = await self._get_count(
             "SELECT COUNT(*) FROM tasks WHERE due_date IS NULL AND status = ?",
             (Status.PENDING.value,)
@@ -568,7 +502,6 @@ class TaskService:
         if no_due_date_count > 0:
             recommendations.append(f"Consider adding due dates to {no_due_date_count} pending tasks.")
         
-        # Check for high-priority tasks
         high_priority_count = await self._get_count(
             "SELECT COUNT(*) FROM tasks WHERE priority = ? AND status = ?",
             (Priority.HIGH.value, Status.PENDING.value)
@@ -580,7 +513,7 @@ class TaskService:
         return recommendations
     
     def _calculate_priority(
-        self, title: str, description: str, due_date: date, estimated_hours: int
+        self, title: str, description: str, due_date: Optional[date], estimated_hours: Optional[int]
     ) -> Priority:
         """Calculate task priority based on various factors."""
         
@@ -605,12 +538,34 @@ class TaskService:
         # Default to medium
         return Priority.MEDIUM
     
+    async def _get_tasks_for_prioritization(self) -> List[Tuple]:
+        """Get tasks that need prioritization."""
+        cursor = await self.db.execute("""
+            SELECT id, title, description, due_date, estimated_hours
+            FROM tasks
+            WHERE priority = ? AND status = ?
+            ORDER BY due_date ASC, created_at ASC
+        """, (Priority.MEDIUM.value, Status.PENDING.value))
+        
+        return await cursor.fetchall()
+    
+    async def _get_recent_completed_tasks(self) -> List[Tuple]:
+        """Get recent completed tasks for pattern analysis."""
+        cursor = await self.db.execute("""
+            SELECT title, description, category_id, estimated_hours
+            FROM tasks
+            WHERE status = ? AND created_at > ?
+            ORDER BY created_at DESC
+            LIMIT 10
+        """, (Status.COMPLETED.value, datetime.now() - timedelta(days=30)))
+        
+        return await cursor.fetchall()
+    
     async def _suggest_recurring_tasks(self, completed_tasks: List) -> List[TaskSuggestion]:
         """Suggest recurring tasks based on completed patterns."""
         suggestions = []
         
-        # Simple pattern detection - suggest similar tasks
-        for task in completed_tasks[:3]:  # Only analyze recent tasks
+        for task in completed_tasks[:3]:
             if "meeting" in task['title'].lower():
                 suggestions.append(TaskSuggestion(
                     title="Schedule follow-up meeting",
@@ -650,22 +605,18 @@ class TaskService:
     
     async def _suggest_capacity_based_tasks(self) -> List[TaskSuggestion]:
         """Suggest tasks based on current capacity."""
-        # Get current week's tasks
         week_start = date.today() - timedelta(days=date.today().weekday())
         week_end = week_start + timedelta(days=6)
         
-        cursor = await self.db.execute("""
-            SELECT COUNT(*) as count
-            FROM tasks
+        current_tasks = await self._get_count("""
+            SELECT COUNT(*) 
+            FROM tasks 
             WHERE created_at >= ? AND created_at <= ?
             AND status IN (?, ?)
         """, (week_start, week_end, Status.PENDING.value, Status.IN_PROGRESS.value))
         
-        current_tasks = (await cursor.fetchone())[0]
-        
-        # Suggest small tasks if current load is low
         if current_tasks < 5:
-            suggestions = [TaskSuggestion(
+            return [TaskSuggestion(
                 title="Review and organize task list",
                 description="Clean up and organize your current task list",
                 priority=Priority.LOW,
@@ -673,12 +624,15 @@ class TaskService:
                 confidence_score=0.7,
                 reasoning="Light workload detected, good time for organization"
             )]
-        else:
-            suggestions = []
         
-        return suggestions
+        return []
     
     async def _suggest_priority_improvements(self, task: TaskRead) -> None:
         """Suggest priority improvements for a task."""
         # This would integrate with OpenAI API in a real implementation
         pass
+    
+    def _get_current_user_id(self) -> int:
+        """Get current user ID from authentication context."""
+        # TODO: Get from authentication context
+        return 1
