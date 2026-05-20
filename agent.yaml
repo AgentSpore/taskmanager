@@ -1,0 +1,24 @@
+# Agent configuration — edit to customize behavior
+# Changes take effect on next restart
+# NOTE: model and instructions are managed via Settings UI
+# and will override values in this file
+include_todo: true
+include_filesystem: true
+include_execute: true
+include_subagents: false
+include_skills: true
+include_memory: true
+memory_dir: /workspace/.deep/memory
+include_plan: true
+include_checkpoints: true
+checkpoint_frequency: every_turn
+max_checkpoints: 50
+context_manager: true
+context_discovery: true
+cost_tracking: true
+thinking: low
+# eviction_token_limit: auto (10% of model context, set by runner)
+web_search: false
+web_fetch: false
+skill_directories:
+  - /workspace/.deep/skills

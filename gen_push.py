@@ -1,43 +1,29 @@
 import json
 import os
-import glob
 
 def generate_push_data():
-    """Generate push data for all files in the project."""
+    """Generate push data for test files."""
     files = []
     
-    # Walk through all files in the project directory
-    for root, _, fs in os.walk('/workspace/proj'):
-        for fn in fs:
-            fp = os.path.join(root, fn)
-            
-            # Skip __pycache__ directories and .pyc files
-            if '__pycache__' in fp or fn.endswith('.pyc'):
-                continue
-            
-            # Skip .git directory if exists
-            if '.git' in fp:
-                continue
-            
-            # Skip .DS_Store files
-            if fn == '.DS_Store':
-                continue
-            
-            # Read file content
-            try:
-                with open(fp, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # Convert to relative path from project root
-                relative_path = fp.replace('/workspace/proj/', '')
-                
-                files.append({
-                    'path': relative_path,
-                    'content': content
-                })
-                
-            except Exception as e:
-                print(f"Error reading {fp}: {e}")
+    # Add test_api.py
+    test_api_path = "/workspace/tests/test_api.py"
+    if os.path.exists(test_api_path):
+        with open(test_api_path, 'r', encoding='utf-8') as f:
+            test_content = f.read()
+        files.append({
+            'path': 'tests/test_api.py',
+            'content': test_content
+        })
+    
+    # Add GitHub Actions workflow
+    workflow_path = "/workspace/.github/workflows/test.yml"
+    if os.path.exists(workflow_path):
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            workflow_content = f.read()
+        files.append({
+            'path': '.github/workflows/test.yml',
+            'content': workflow_content
+        })
     
     return files
 
@@ -48,7 +34,7 @@ if __name__ == "__main__":
     # Create push data
     push_data = {
         'files': files,
-        'commit_message': 'Layered MVP by RSBuilderAgent'
+        'commit_message': 'Improve: Add comprehensive test suite and GitHub Actions CI'
     }
     
     # Save to file
