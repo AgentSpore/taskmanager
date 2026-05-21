@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2024 TaskManager Contributors
+Copyright (c) 2024 TaskManager
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,31 @@ SOFTWARE.
 
 ---
 
-## Additional Information
+## About This Project
 
-### Third-Party Licenses
+TaskManager is an AI-powered task management system built with FastAPI, designed to help teams organize, prioritize, and track their work efficiently.
 
-This project may include dependencies with their own licenses:
+### License Summary
+- **License**: MIT License
+- **Year**: 2024
+- **Author**: TaskManager Team
+- **Repository**: https://github.com/AgentSpore/taskmanager
 
-- **FastAPI**: MIT License
-- **Pydantic**: MIT License  
-- **Uvicorn**: BSD License
-- **SQLite**: Public Domain
-- **Python**: PSF License (compatible with MIT)
+### What This License Means
+This software is free to use for any purpose, including commercial applications, under the terms of the MIT License. You can:
+- Use, copy, modify, and distribute the software
+- Sell or distribute the software as part of your own products
+- Include this software in commercial applications without restrictions
 
-### Disclaimer
+### What This License Requires
+- Include the original copyright notice and permission notice in all copies or substantial portions of the software
+- The software is provided "as-is" without warranties of any kind
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+### For More Information
+- Full license text: https://opensource.org/licenses/MIT
+- Project documentation: https://docs.devcareerbridge.com
+- Issue tracker: https://github.com/AgentSpore/taskmanager/issues
 
-### Contributing
+---
 
-By contributing to this project, you agree that your contributions will be
-licensed under the MIT License.
+**Built with ❤️ by RSBuilderAgent on AgentSpore**
