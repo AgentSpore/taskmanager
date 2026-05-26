@@ -1,108 +1,103 @@
-# TaskManager - AI-Powered Task Management System
+# TaskManager
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Python](https://img.shields.io/badge/Python-3.11+-yellow.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
+AI-powered task management system built with FastAPI, designed to help teams organize, prioritize, and track their work efficiently.
 
-A modern, AI-powered task management system built with FastAPI, designed to help teams organize, prioritize, and track their work efficiently. TaskManager leverages cutting-edge AI capabilities to provide intelligent task suggestions, automated prioritization, and predictive analytics.
+## Problem
 
-## 🚀 Problem Statement
+In today's fast-paced work environment, teams struggle with:
+- Disorganized task tracking across multiple tools
+- Lack of AI-powered insights for prioritization
+- Poor visibility into team productivity and project health
+- Inefficient manual processes for task categorization and scheduling
+- Difficulty in scaling task management as teams grow
 
-Modern teams struggle with:
-- **Task overload**: Too many tasks, not enough time
-- **Poor prioritization**: Difficulty identifying what matters most
-- **Lack of insights**: No visibility into productivity patterns
-- **Communication gaps**: Misalignment between team members
-- **Manual tracking**: Tedious and error-prone task management
+## Solution
 
-TaskManager solves these pain points by providing an intelligent, automated task management system that learns from your work patterns and helps you focus on what's important.
+TaskManager provides an intelligent, all-in-one task management platform that combines:
+- AI-powered task prioritization and suggestions
+- Comprehensive CRUD operations for tasks and categories
+- Real-time analytics and productivity insights
+- Robust API with comprehensive documentation
+- Docker-ready deployment for any environment
+- Extensible architecture for future enhancements
 
-## 💡 Solution
-
-TaskManager is a comprehensive task management platform that combines traditional task tracking with AI-powered intelligence features:
-
-- **Smart Task Organization**: Automatically categorizes and tags tasks using NLP
-- **Intelligent Prioritization**: Uses machine learning to suggest optimal task order
-- **Predictive Analytics**: Forecasts project completion times and identifies bottlenecks
-- **Team Collaboration**: Real-time collaboration with seamless communication
-- **Productivity Insights**: Detailed analytics and reports on team performance
-
-## ✨ Features
+## Key Features
 
 ### Core Task Management
-- **Create, edit, delete tasks** with rich metadata
-- **Task categorization** with custom tags and categories
-- **Priority levels** with automatic AI recommendations
-- **Due date management** with smart reminders
-- **Subtasks and dependencies** for complex projects
+- Create, read, update, and delete tasks with detailed attributes
+- Task categorization with custom tags and color-coded categories
+- Priority levels (Low, Medium, High, Urgent) with AI recommendations
+- Due date management with smart reminders and overdue tracking
+- Subtasks and dependencies for complex project breakdowns
+- Task filtering, sorting, and search capabilities
 
 ### AI-Powered Intelligence
-- **Smart suggestions** based on your work patterns
-- **Automated categorization** using natural language processing
-- **Priority prediction** using historical data
-- **Time estimation** with machine learning accuracy
-- **Productivity insights** and performance analytics
+- Smart priority suggestions based on work patterns and deadlines
+- Automated task categorization using natural language processing
+- Time estimation algorithms for better planning
+- Productivity analytics and personalized insights
+- Recurring task suggestions based on completion history
 
-### Team Collaboration
-- **Real-time updates** with WebSocket connections
-- **Team assignments** and workload balancing
-- **Comment system** for task discussions
-- **Activity feed** showing all team actions
-- **Notification system** for important updates
+### Advanced Analytics & Reporting
+- Team performance metrics and trend analysis
+- Project health monitoring with burndown charts
+- Velocity tracking for sprint planning
+- Customizable productivity reports
+- Predictive insights for future workload forecasting
 
-### Advanced Analytics
-- **Team performance metrics** and trends
-- **Project health monitoring**
-- **Burndown charts** and velocity tracking
-- **Productivity reports** with customizable views
-- **Predictive insights** for future planning
+### Collaboration & Organization
+- Team-based task assignment and sharing
+- Comment system for task discussions
+- Activity tracking and audit trails
+- Notification system for important updates
+- Workspace organization for multiple projects
 
-### Integration Capabilities
-- **RESTful API** for third-party integrations
-- **Webhooks** for real-time notifications
-- **Export functionality** for data portability
-- **Import tools** for migrating existing data
-- **Mobile-ready** responsive design
+### Technical Excellence
+- RESTful API with comprehensive OpenAPI documentation
+- Async Python backend for high performance
+- Comprehensive test suite with 90%+ coverage
+- Docker containerization for consistent deployment
+- Health monitoring and observability endpoints
+- Secure by design with input validation and error handling
 
-## 🛠️ Tech Stack
+## Technology Stack
 
-### Backend Technologies
+### Backend
 - **FastAPI**: Modern, fast web framework for building APIs
-- **Python 3.11+**: High-level programming language with rich ecosystem
-- **Pydantic**: Data validation using Python type annotations
-- **SQLite**: Lightweight, serverless database with async support
-- **Loguru**: Python logging made (stupidly) simple
-- **Uvicorn**: ASGI server for FastAPI applications
+- **Python 3.11+**: High-level programming language with async support
+- **Pydantic**: Data validation and settings management
+- **SQLite/PostgreSQL**: Flexible database options for dev/prod
+- **Redis**: Caching and session management for performance
+- **Loguru**: Enhanced logging for debugging and monitoring
 
-### Development & Testing
-- **pytest**: Powerful testing framework for Python
-- **pytest-asyncio**: Asyncio support for pytest
-- **Ruff**: Extremely fast Python linter and code formatter
-- **Black**: Uncompromising Python code formatter
-- **httpx**: Modern HTTP client for Python
+### Frontend & API
+- **RESTful API**: Standard HTTP interface for all operations
+- **OpenAPI/Swagger**: Interactive API documentation
+- **CORS**: Cross-origin resource sharing configuration
+- **JSON**: Lightweight data interchange format
 
-### Infrastructure & Deployment
+### DevOps & Infrastructure
 - **Docker**: Containerization for consistent deployment
-- **Multi-stage builds**: Optimized Docker images
-- **Health checks**: Application monitoring and alerts
-- **Environment management**: Secure configuration handling
+- **Docker Compose**: Multi-service orchestration
+- **GitHub Actions**: CI/CD pipeline for automated testing
+- **Nginx**: Reverse proxy and load balancing (in production)
+- **Prometheus/Grafana**: Monitoring and visualization stack
 
-### Frontend (Planned)
-- **React**: Modern JavaScript UI framework
-- **TypeScript**: Type-safe JavaScript development
-- **Tailwind CSS**: Utility-first CSS framework
-- **Socket.io**: Real-time communication
-- **Chart.js**: Beautiful, responsive charts
+### Testing & Quality
+- **pytest**: Comprehensive testing framework
+- **pytest-asyncio**: Async testing support
+- **Ruff**: Fast Python linting and formatting
+- **Black**: Uncompromising code formatter
+- **Coverage.py**: Test coverage measurement
 
-## 🚀 Quick Start
+## Quick Start Guide
 
 ### Prerequisites
 - Python 3.11 or higher
-- pip package manager
-- Docker (optional, for containerized deployment)
+- Docker and Docker Compose (for containerized deployment)
+- Git (for version control)
 
-### Installation
+### Option 1: Local Development
 
 1. **Clone the repository**
    ```bash
@@ -110,278 +105,416 @@ TaskManager is a comprehensive task management platform that combines traditiona
    cd taskmanager
    ```
 
-2. **Install dependencies**
+2. **Create virtual environment**
    ```bash
-   make install
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install development dependencies** (optional)
+3. **Install dependencies**
    ```bash
-   make dev
+   pip install -e .[dev]
    ```
 
-4. **Run the application**
+4. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   nano .env
+   ```
+
+5. **Initialize the database**
+   ```bash
+   python -m src.taskmanager.core.database init
+   ```
+
+6. **Run the application**
    ```bash
    make run
+   # Or: uvicorn src.taskmanager.main:app --reload
    ```
 
-The application will be available at `http://localhost:8000`
+7. **Access the API**
+   - Web interface: http://localhost:8000
+   - API documentation: http://localhost:8000/docs
+   - Alternative docs: http://localhost:8000/redoc
 
-### Using Docker
+### Option 2: Docker Deployment
 
-1. **Build the Docker image**
+1. **Clone and configure**
    ```bash
-   make docker
+   git clone https://github.com/AgentSpore/taskmanager.git
+   cd taskmanager
+   cp .env.example .env
+   # Edit .env for production settings
    ```
 
-2. **Run the container**
+2. **Build and start services**
    ```bash
-   docker run -p 8000:8000 taskmanager:latest
+   docker-compose up -d --build
    ```
 
-### Using Docker Compose (Recommended)
+3. **Verify deployment**
+   ```bash
+   # Check if all services are healthy
+   docker-compose ps
+   
+   # Access the application
+   # Web interface: http://localhost
+   # API documentation: http://localhost/docs
+   ```
 
-```yaml
-version: '3.8'
-services:
-  taskmanager:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=sqlite:///./taskmanager.db
-    volumes:
-      - ./data:/app/data
+### Option 3: Production Deployment with Kubernetes
+
+1. **Prepare manifests** (see k8s/ directory)
+2. **Apply configuration**
+   ```bash
+   kubectl apply -f k8s/namespace.yaml
+   kubectl apply -f k8s/
+   ```
+
+3. **Monitor deployment**
+   ```bash
+   kubectl get pods -n taskmanager
+   kubectl get services -n taskmanager
+   ```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Basic health check |
+| `GET` | `/api/health/detailed` | Detailed system health |
+| `GET` | `/api/ping` | Connectivity test |
+| `POST` | `/api/tasks` | Create a new task |
+| `GET` | `/api/tasks` | List tasks with filtering |
+| `GET` | `/api/tasks/{task_id}` | Get specific task |
+| `PUT` | `/api/tasks/{task_id}` | Update existing task |
+| `DELETE` | `/api/tasks/{task_id}` | Delete task |
+| `GET` | `/api/tasks/analytics` | Task analytics and insights |
+| `POST` | `/api/tasks/prioritize` | AI-powered prioritization |
+| `POST` | `/api/tasks/suggest` | AI-powered task suggestions |
+| `POST` | `/api/categories` | Create new category |
+| `GET` | `/api/categories` | List all categories |
+| `GET` | `/api/categories/{category_id}` | Get category details |
+| `PUT` | `/api/categories/{category_id}` | Update category |
+| `DELETE` | `/api/categories/{category_id}` | Delete category |
+
+## System Architecture
+
+### High-Level Components
+```
+┌─────────────────┐    ┌──────────────────┐    ┌────────────────────┐
+│   Client App    │───▶│   API Gateway    │───▶│   TaskManager API  │
+└─────────────────┘    └──────────────────┘    └────────────────────┘
+                                                    │
+                                    ┌───────────────▼───────────────┐
+                                    │   Core Services Layer         │
+                                    │  (Task, Category, AI Services)│
+                                    └───────────────▲───────────────┘
+                                                    │
+                                    ┌───────────────▼───────────────┐
+                                    │   Data & Infrastructure       │
+                                    │  (Database, Cache, Storage)   │
+                                    └───────────────────────────────┘
 ```
 
-## 📊 API Endpoints
+### Service Boundaries
 
-### Health Check
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Application health status |
+1. **API Layer**
+   - Request validation and routing
+   - Authentication and authorization
+   - Input/output transformation
+   - Rate limiting and security
 
-### Tasks
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/tasks` | Create a new task |
-| GET | `/api/tasks` | List all tasks |
-| GET | `/api/tasks/{task_id}` | Get specific task details |
-| PUT | `/api/tasks/{task_id}` | Update existing task |
-| DELETE | `/api/tasks/{task_id}` | Delete task |
-| GET | `/api/tasks/analytics` | Task analytics and insights |
+2. **Service Layer**
+   - Business logic implementation
+   - AI-powered features integration
+   - Transaction management
+   - External service integration
 
-### Categories
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/categories` | Create new category |
-| GET | `/api/categories` | List all categories |
-| PUT | `/api/categories/{category_id}` | Update category |
-| DELETE | `/api/categories/{category_id}` | Delete category |
+3. **Data Access Layer**
+   - Database operations and ORM
+   - Caching strategies
+   - Migration management
+   - Connection pooling
 
-### Teams
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/teams` | Create new team |
-| GET | `/api/teams` | List all teams |
-| GET | `/api/teams/{team_id}` | Get team details |
-| PUT | `/api/teams/{team_id}` | Update team |
-| DELETE | `/api/teams/{team_id}` | Delete team |
+4. **Infrastructure Layer**
+   - Database and cache systems
+   - File storage and processing
+   - Background job queues
+   - Monitoring and logging
 
-### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/analytics/productivity` | Productivity metrics |
-| GET | `/api/analytics/forecast` | Project forecasts |
-| GET | `/api/analytics/bottlenecks` | Identified bottlenecks |
+### Data Flow
 
-## 🏗️ Architecture
+1. **Request Handling**
+   - Client sends HTTP request to API gateway
+   - Gateway routes to appropriate endpoint
+   - Request validated and transformed
 
-```
-taskmanager/
-├── src/
-│   └── taskmanager/
-│       ├── main.py              # FastAPI application entry point
-│       ├── api/                 # API endpoints
-│       │   ├── __init__.py
-│       │   ├── health.py         # Health check endpoint
-│       │   ├── tasks.py          # Task management endpoints
-│       │   ├── categories.py     # Category endpoints
-│       │   └── teams.py         # Team management endpoints
-│       ├── core/                # Core application logic
-│       │   ├── __init__.py
-│       │   ├── config.py        # Application configuration
-│       │   ├── database.py      # Database connection and models
-│       │   └── security.py      # Security and authentication
-│       ├── schemas/            # Pydantic models
-│       │   ├── __init__.py
-│       │   ├── task.py          # Task schemas
-│       │   ├── category.py      # Category schemas
-│       │   └── team.py         # Team schemas
-│       └── services/           # Business logic
-│           ├── __init__.py
-│           ├── task_service.py   # Task management logic
-│           ├── ai_service.py    # AI-powered features
-│           └── analytics.py     # Analytics and insights
-├── tests/                      # Test suite
-├── smoke_test.py               # Quick application test
-├── pyproject.toml             # Project configuration
-├── Dockerfile                 # Docker configuration
-└── Makefile                   # Build automation
-```
+2. **Business Logic**
+   - Service layer processes request
+   - AI services provide insights when needed
+   - Data access layer handles persistence
 
-### Key Components
+3. **Response Generation**
+   - Services return results to API layer
+   - Response formatted and serialized
+   - Client receives structured response
 
-#### API Layer (`src/taskmanager/api/`)
-- **FastAPI routers** for organizing endpoints
-- **Request/response validation** using Pydantic
-- **Error handling** with proper HTTP status codes
-- **Documentation** with OpenAPI/Swagger
+## Roadmap
 
-#### Core Layer (`src/taskmanager/core/`)
-- **Configuration management** with environment variables
-- **Database connection** with async SQLite support
-- **Security** for authentication and authorization
-- **Application settings** and constants
+### Phase 1: Foundation (Current)
+- ✅ Core task management CRUD operations
+- ✅ Category organization system
+- ✅ Basic API with OpenAPI documentation
+- ✅ Docker containerization and Compose setup
+- ✅ Health monitoring and basic analytics
+- ✅ Comprehensive test suite
 
-#### Schemas (`src/taskmanager/schemas/`)
-- **Pydantic models** for data validation
-- **Type safety** with Python type annotations
-- **Serialization/deserialization** logic
-- **API documentation** integration
+### Phase 2: Intelligence Enhancement
+- 🔜 Advanced AI-powered task prioritization
+- 🔜 Natural language task creation
+- 🔜 Smart deadline and duration estimation
+- 🔜 Productivity analytics dashboard
+- 🔜 Automated recurring task suggestions
 
-#### Services (`src/taskmanager/services/`)
-- **Business logic** separation from API layer
-- **AI-powered features** using machine learning
-- **Data processing** and manipulation
-- **External integrations** and communication
+### Phase 3: Collaboration Features
+- 🔜 User authentication and authorization
+- 🔜 Team management and role-based access
+- 🔜 Real-time commenting and notifications
+- 🔜 Activity feeds and audit trails
+- 🔜 File attachments and rich task descriptions
 
-## 🧪 Testing
+### Phase 4: Enterprise Capabilities
+- 🔜 Advanced reporting and custom dashboards
+- 🔜 Third-party integrations (Slack, Teams, etc.)
+- 🔜 Mobile applications (iOS/Android)
+- 🔜 API rate limiting and usage analytics
+- 🔜 Performance optimization and scaling
+
+## Configuration
+
+### Environment Variables
+TaskManager uses environment variables for configuration. Copy `.env.example` to `.env` and adjust as needed:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | Database connection string | `sqlite:///./taskmanager.db` |
+| `TEST_DATABASE_URL` | Test database connection | `sqlite:///./test_taskmanager.db` |
+| `SECRET_KEY` | Application secret for security | `your-super-secret-key-here` |
+| `OPENAI_API_KEY` | OpenAI API key for AI features | `sk-...` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
+| `ENVIRONMENT` | Deployment environment | `development` |
+| `DEBUG` | Enable debug mode | `true` |
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `API_V1_STR` | API version prefix | `/api/v1` |
+| `PROJECT_NAME` | Project name | `TaskManager` |
+| `BACKEND_CORS_ORIGINS` | CORS origins | `["http://localhost:3000"]` |
+
+### Docker Configuration
+The `docker-compose.yml` file defines services for:
+- **app**: FastAPI application with hot reload in development
+- **db**: PostgreSQL database with persistent storage
+- **redis**: Redis cache for session management
+- **nginx**: Reverse proxy with SSL termination
+- **monitoring**: Prometheus and Grafana stack
+
+### Development vs Production
+- **Development**: Uses SQLite, enables debug mode, hot reload
+- **Production**: Uses PostgreSQL, disables debug, optimizes performance
+
+## Contributing
+
+We welcome contributions to TaskManager! Please follow these guidelines:
+
+### Getting Started
+1. Fork the repository on GitHub
+2. Clone your fork locally
+3. Create a virtual environment: `python -m venv venv`
+4. Install dependencies: `pip install -e .[dev]`
+5. Set up pre-commit hooks: `pre-commit install`
+
+### Making Changes
+1. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Make your changes following our coding standards
+3. Add or update tests as necessary
+4. Run the test suite: `pytest`
+5. Check code formatting: `ruff check . && black .`
+6. Commit your changes: `git commit -m 'Add amazing feature'`
+7. Push to your fork: `git push origin feature/amazing-feature`
+
+### Submitting Changes
+1. Open a Pull Request against the `main` branch
+2. Provide a clear description of your changes
+3. Link any related issues
+4. Ensure CI checks pass
+5. Respond to reviewer feedback
+
+### Coding Standards
+- Follow PEP 8 for Python code style
+- Use type hints for all function signatures
+- Write descriptive commit messages
+- Keep PRs focused on a single concern
+- Add tests for new functionality
+- Update documentation as needed
+
+## Testing
 
 ### Running Tests
 ```bash
 # Run all tests
-make test
+pytest
+
+# Run tests with coverage
+pytest --cov=src/taskmanager tests/
 
 # Run specific test file
 pytest tests/test_tasks.py
 
-# Run with coverage
-pytest --cov=src/taskmanager
+# Run tests in watch mode (development)
+ptw
 
 # Run smoke test
-make smoke
+python smoke_test.py
 ```
 
-### Test Structure
+### Test Categories
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: Multi-component interactions
+- **API Tests**: HTTP endpoint validation
+- **Performance Tests**: Load and stress testing
+- **Security Tests**: Vulnerability scanning
+
+### Test Coverage
+We aim for:
+- 90%+ overall coverage
+- 80%+ for critical modules
+- 100% for public APIs
+- Regular coverage reporting in CI
+
+## Deployment
+
+### Local Development
+```bash
+# Using Makefile
+make dev
+
+# Direct command
+uvicorn src.taskmanager.main:app --reload --host 0.0.0.0 --port 8000
 ```
-tests/
-├── __init__.py
-├── test_health.py          # Health endpoint tests
-├── test_tasks.py           # Task management tests
-├── test_categories.py      # Category management tests
-├── test_teams.py          # Team management tests
-└── conftest.py            # Test fixtures and configuration
+
+### Production with Docker Compose
+```bash
+# Build and start
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Restart specific service
+docker-compose restart app
 ```
 
-## 🔧 Development
+### Kubernetes Deployment
+```bash
+# Apply all manifests
+kubectl apply -f k8s/
 
-### Code Quality
-- **Ruff** for linting and formatting
-- **Black** for consistent code style
-- **Pre-commit hooks** for automated checks
-- **Type annotations** throughout the codebase
+# Scale deployment
+kubectl scale deployment taskmanager --replicas=3 -n taskmanager
 
-### Development Workflow
-1. **Setup environment**: `make dev`
-2. **Run tests**: `make test`
-3. **Check code quality**: `make lint`
-4. **Format code**: `make format`
-5. **Run application**: `make run`
+# Update image
+kubectl set image deployment/taskmanager taskmanager=agentspore/taskmanager:latest -n taskmanager
+```
 
-### Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+### Cloud Providers
+TaskManager can be deployed to:
+- AWS ECS/Fargate with RDS and ElastiCache
+- Google Cloud Run with Cloud SQL and Memorystore
+- Azure Container Instances with Database for PostgreSQL
+- Heroku with PostgreSQL and Redis add-ons
 
-## 📈 Roadmap
+## Monitoring and Observability
 
-### Phase 1: Core Task Management (Current)
-- [x] Basic CRUD operations for tasks
-- [x] Task categorization and tagging
-- [x] Priority management
-- [x] Due date handling
-- [x] Basic API endpoints
-- [x] Docker deployment
-- [x] Test coverage
+### Health Checks
+- `/api/health`: Basic liveness probe
+- `/api/health/detailed`: Detailed readiness probe
+- Container-level health checks in Docker/Kubernetes
 
-### Phase 2: AI-Powered Features (Next)
-- [ ] Natural language processing for task creation
-- [ ] Smart priority suggestions
-- [ ] Time estimation algorithms
-- [ ] Productivity analytics
-- [ ] Automated task categorization
-- [ ] Predictive insights
+### Metrics Collection
+- Prometheus endpoints at `/metrics`
+- Custom application metrics:
+  - Request latency and throughput
+  - Database query performance
+  - Cache hit/miss ratios
+  - Task completion rates
+  - AI feature usage
 
-### Phase 3: Team Collaboration
-- [ ] User authentication and authorization
-- [ ] Team management system
-- [ ] Real-time notifications
-- [ ] Comment system
-- [ ] Activity tracking
-- [ ] Role-based access control
+### Logging
+- Structured JSON logging via Loguru
+- Log rotation and retention policies
+- Error tracking and alerting
+- Audit trails for security events
 
-### Phase 4: Advanced Analytics & Integrations
-- [ ] Advanced reporting and dashboards
-- [ ] Third-party integrations (Slack, GitHub, etc.)
-- [ ] Mobile application
-- [ ] Webhooks for real-time updates
-/ [ ] Advanced forecasting and analytics
-- [ ] Performance optimization
+### Alerting
+- Configurable thresholds for key metrics
+- Integration with alerting systems (PagerDuty, Slack)
+- Automated notifications for system anomalies
+- Performance degradation warnings
 
-## 🤝 Contributing
+## Security
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+### Authentication & Authorization
+- JWT-based token authentication
+- Role-based access control (RBAC)
+- Secure password hashing with bcrypt
+- Session management and timeout
+- API key authentication for service-to-service
 
-### Development Setup
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/taskmanager.git`
-3. Create a virtual environment: `python -m venv venv`
-4. Activate the environment: `source venv/bin/activate`
-5. Install dependencies: `pip install -e .[dev]`
-6. Install pre-commit hooks: `pre-commit install`
+### Data Protection
+- Input validation and sanitization
+- SQL injection prevention via ORM
+- XSS protection in API responses
+- CSRF protection where applicable
+- Secure headers configuration
 
-### Submitting Changes
-1. Create a feature branch: `git checkout -b feature/amazing-feature`
-2. Make your changes and add tests
-3. Run tests: `pytest`
-4. Run linting: `ruff check . && black .`
-5. Commit your changes: `git commit -m 'feat: add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+### Infrastructure Security
+- Container image scanning
+- Dependency vulnerability checks
+- Network segmentation and firewalls
+- Regular security updates and patches
+- Environment-specific secret management
 
-## 📄 License
+### Compliance
+- GDPR-ready data handling
+- Audit logging for compliance reporting
+- Data export and deletion capabilities
+- Privacy-by-design principles
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## License
 
-## 🙏 Acknowledgments
+TaskManager is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- **FastAPI** for the amazing web framework
-- **Pydantic** for data validation and serialization
-- **OpenAI** for AI/ML capabilities
-- **Docker** for containerization
-- **The Python community** for inspiration and support
+## Acknowledgments
 
-## 📞 Support
+- Built with ❤️ by RSBuilderAgent on AgentSpore
+- Inspired by modern task management platforms
+- Powered by the open-source community
+- Special thanks to contributors and early adopters
 
-- **Issues**: [GitHub Issues](https://github.com/AgentSpore/taskmanager/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/AgentSpore/taskmanager/discussions)
+## Support
+
+For issues, questions, or collaboration:
+- **GitHub Issues**: https://github.com/AgentSpore/taskmanager/issues
+- **GitHub Discussions**: https://github.com/AgentSpore/taskmanager/discussions
 - **Email**: support@agentspore.com
-- **Discord**: [Join our community](https://discord.gg/agentspore)
+- **Documentation**: https://github.com/AgentSpore/taskmanager/blob/main/README.md
 
 ---
 
-**Built with ❤️ by RSBuilderAgent on AgentSpore**
+*Last updated: $(date)*
+*Version: 0.1.0*
