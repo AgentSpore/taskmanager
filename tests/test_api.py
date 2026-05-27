@@ -1,122 +1,155 @@
 import pytest
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 from src.taskmanager.main import app
 
-@pytest.fixture
-async def async_client():
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
+client = TestClient(app)
 
-@pytest.mark.asyncio
-async def test_health(async_client):
-    response = await async_client.get("/api/health")
+def test_health():
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+def test_create_task():
+    response = client.post(
+        "/api/tasks",
+        json={"title": "Test Task", "description": "A test task", "completed": False},
+    )
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "ok"
+    assert data["title"] == "Test Task"
+    assert data["description"] == "A test task"
+    assert data["completed"] == False
+    task_id = data["id"]
+    # Clean up
+    client.delete(f"/api/tasks/{task_id}")
+    return task_id
 
-@pytest.mark.asyncio
-async def test_create_task(async_client):
-    task_data = {
-        "title": "Test Task",
-        "description": "Test Description",
-        "priority": "high",
-        "due_date": "2026-12-31T00:00:00Z"
-    }
-    response = await async_client.post("/api/tasks", json=task_data)
-    assert response.status_code == 201
-    data = response.json()
-    assert data["title"] == task_data["title"]
-    assert "id" in data
-
-@pytest.mark.asyncio
-async def test_get_tasks(async_client):
-    response = await async_client.get("/api/tasks")
+def test_get_tasks():
+    response = client.get("/api/tasks")
     assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(response.json(), list)
 
-@pytest.mark.asyncio
-async def test_get_task(async_client):
+def test_get_task():
     # First create a task
-    task_data = {
-        "title": "Test Task 2",
-        "description": "Test Description 2",
-        "priority": "medium",
-        "due_date": "2026-12-31T00:00:00Z"
-    }
-    create_response = await async_client.post("/api/tasks", json=task_data)
-    assert create_response.status_code == 201
-    task_id = create_response.json()["id"]
-    
-    # Then get it
-    response = await async_client.get(f"/api/tasks/{task_id}")
+    response = client.post(
+        "/api/tasks",
+        json={"title": "Test Task 2", "description": "Another test task", "completed": True},
+    )
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == task_id
-    assert data["title"] == task_data["title"]
+    task_id = data["id"]
+    # Get the task
+    response = client.get(f"/api/tasks/{task_id}")
+    assert response.status_code == 200
+    assert response.json()["title"] == "Test Task 2"
+    # Clean up
+    client.delete(f"/api/tasks/{task_id}")
 
-@pytest.mark.asyncio
-async def test_update_task(async_client):
+def test_update_task():
     # Create a task
-    task_data = {
-        "title": "Task to Update",
-        "description": "Original Description",
-        "priority": "low",
-        "due_date": "2026-12-31T00:00:00Z"
-    }
-    create_response = await async_client.post("/api/tasks", json=task_data)
-    assert create_response.status_code == 201
-    task_id = create_response.json()["id"]
-    
-    # Update it
-    update_data = {
-        "title": "Updated Task",
-        "description": "Updated Description",
-        "priority": "high",
-        "due_date": "2026-12-31T00:00:00Z"
-    }
-    response = await async_client.put(f"/api/tasks/{task_id}", json=update_data)
+    response = client.post(
+        "/api/tasks",
+        json={"title": "Task to Update", "description": "Original description", "completed": False},
+    )
     assert response.status_code == 200
     data = response.json()
-    assert data["title"] == update_data["title"]
-    assert data["description"] == update_data["description"]
+    task_id = data["id"]
+    # Update the task
+    response = client.put(
+        f"/api/tasks/{task_id}",
+        json={"title": "Updated Task", "description": "Updated description", "completed": True},
+    )
+    assert response.status_code == 200
+    updated_data = response.json()
+    assert updated_data["title"] == "Updated Task"
+    assert updated_data["description"] == "Updated description"
+    assert updated_data["completed"] == True
+    # Clean up
+    client.delete(f"/api/tasks/{task_id}")
 
-@pytest.mark.asyncio
-async def test_delete_task(async_client):
+def test_delete_task():
     # Create a task
-    task_data = {
-        "title": "Task to Delete",
-        "description": "Will be deleted",
-        "priority": "low",
-        "due_date": "2026-12-31T00:00:00Z"
-    }
-    create_response = await async_client.post("/api/tasks", json=task_data)
-    assert create_response.status_code == 201
-    task_id = create_response.json()["id"]
-    
-    # Delete it
-    response = await async_client.delete(f"/api/tasks/{task_id}")
-    assert response.status_code == 204
-    
+    response = client.post(
+        "/api/tasks",
+        json={"title": "Task to Delete", "description": "To be deleted", "completed": False},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    task_id = data["id"]
+    # Delete the task
+    response = client.delete(f"/api/tasks/{task_id}")
+    assert response.status_code == 200
     # Verify it's gone
-    get_response = await async_client.get(f"/api/tasks/{task_id}")
-    assert get_response.status_code == 404
+    response = client.get(f"/api/tasks/{task_id}")
+    assert response.status_code == 404
 
-@pytest.mark.asyncio
-async def test_create_category(async_client):
-    category_data = {
-        "name": "Test Category",
-        "description": "Test Category Description"
-    }
-    response = await async_client.post("/api/categories", json=category_data)
-    assert response.status_code == 201
-    data = response.json()
-    assert data["name"] == category_data["name"]
-    assert "id" in data
-
-@pytest.mark.asyncio
-async def test_get_categories(async_client):
-    response = await async_client.get("/api/categories")
+def test_create_category():
+    response = client.post(
+        "/api/categories",
+        json={"name": "Test Category", "description": "A test category"},
+    )
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
+    assert data["name"] == "Test Category"
+    category_id = data["id"]
+    # Clean up
+    client.delete(f"/api/categories/{category_id}")
+    return category_id
+
+def test_get_categories():
+    response = client.get("/api/categories")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+def test_get_category():
+    # Create a category
+    response = client.post(
+        "/api/categories",
+        json={"name": "Test Category 2", "description": "Another test category"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    category_id = data["id"]
+    # Get the category
+    response = client.get(f"/api/categories/{category_id}")
+    assert response.status_code == 200
+    assert response.json()["name"] == "Test Category 2"
+    # Clean up
+    client.delete(f"/api/categories/{category_id}")
+
+def test_update_category():
+    # Create a category
+    response = client.post(
+        "/api/categories",
+        json={"name": "Category to Update", "description": "Original description"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    category_id = data["id"]
+    # Update the category
+    response = client.put(
+        f"/api/categories/{category_id}",
+        json={"name": "Updated Category", "description": "Updated description"},
+    )
+    assert response.status_code == 200
+    updated_data = response.json()
+    assert updated_data["name"] == "Updated Category"
+    assert updated_data["description"] == "Updated description"
+    # Clean up
+    client.delete(f"/api/categories/{category_id}")
+
+def test_delete_category():
+    # Create a category
+    response = client.post(
+        "/api/categories",
+        json={"name": "Category to Delete", "description": "To be deleted"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    category_id = data["id"]
+    # Delete the category
+    response = client.delete(f"/api/categories/{category_id}")
+    assert response.status_code == 200
+    # Verify it's gone
+    response = client.get(f"/api/categories/{category_id}")
+    assert response.status_code == 404
