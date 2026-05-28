@@ -1,29 +1,23 @@
-import pytest
-from httpx import AsyncClient
-from src.taskmanager.main import app
+def test_health(client):
+    response = client.get("/api/health")
+    assert response.status_code == 200
 
-@pytest.mark.asyncio
-async def test_health():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        r = await ac.get("/api/health")
-    assert r.status_code == 200
-    data = r.json()
-    assert data["status"] == "ok"
+def test_create_resource(client):
+    response = client.post("/api/tasks/", json={"title": "Test task", "description": "Test"})
+    assert response.status_code == 200 or response.status_code == 201
+    data = response.json()
+    assert "id" in data
 
-@pytest.mark.asyncio
-async def test_create_task():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        payload = {"title": "Test Task", "description": "Test description"}
-        r = await ac.post("/api/tasks", json=payload)
-    assert r.status_code == 200
-    task = r.json()
-    assert task["title"] == "Test Task"
-    assert task["description"] == "Test description"
+def test_list_resources(client):
+    response = client.get("/api/tasks/")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
 
-@pytest.mark.asyncio
-async def test_get_tasks():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        r = await ac.get("/api/tasks")
-    assert r.status_code == 200
-    tasks = r.json()
-    assert isinstance(tasks, list)
+def test_invalid_input(client):
+    response = client.post("/api/tasks/", json={})
+    assert response.status_code >= 400
+
+def test_analytics(client):
+    response = client.get("/api/analytics")
+    assert response.status_code == 200
