@@ -5,3 +5,4 @@ from fastapi.testclient import TestClient
 def client():
     from taskmanager.main import app
     return TestClient(app)
+
